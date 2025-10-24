@@ -36,11 +36,12 @@ function socketWrapper2(socket,fn) {
             await fn(...args);
         } catch (err) {
 
-            console.error('Socket Error:', {
-                user: socket.username,
-                error: err.message
-            });
-
+            if(process.env.NODE_ENV  == 'development')
+                    console.error('Socket Error:', {
+                        user: socket.username,
+                        error: err.message
+                    });
+                
             socket.emit("error", {
                 success: false,
                 message: err.message,

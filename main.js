@@ -13,8 +13,8 @@ import { socketAuth } from "./sokect.IO/socketAuth.js";
 import { socketWrapper} from "./middleware/asyncWrapper.js";
 import { joinRoom , sendMessage , leaveRoom, disconnect} from "./sokect.IO/socketController.js";
 import { User } from "./modules/userSchema.js";
+import { Router as OauthRouter } from "./Routes/OauthRouter.js";
 import passport from "passport";
-import { Strategy as FacebookStrategy } from "passport-facebook";
 
 let app = Express(),
     port = process.env.PORT || 3000;
@@ -27,6 +27,9 @@ let http = createServer(app),
             allowedHeaders:["content-Type"]
           }
     });
+
+app.use(passport.initialize());
+import './strategy/googleStrategy.js';
 
 mongoose.connect(process.env.MONGODB_CONNECT_STR)
 .then(()=>{
@@ -43,9 +46,8 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
-app.use(passport.initialize());
-
 //end point
+app.use('/auth',OauthRouter);
 app.use('/api/user',userRouter);
 app.use('/api/room',roomRouter);
 

@@ -8,7 +8,7 @@ const userSchema = new Schema({
         required: [true,"name of the user is required"],
         trim: true 
     },
-    facebookId: {
+    googleId: {
         type: String,
         unique: true,
         sparse: true
@@ -55,6 +55,10 @@ const userSchema = new Schema({
     },
     accessToken:{
         type:String,
+    },
+    provider:{
+        type:String,
+        default:"email"
     }
 }, {
     timestamps: true     // يضيف createdAt و updatedAt تلقائياً
