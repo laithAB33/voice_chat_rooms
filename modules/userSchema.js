@@ -42,10 +42,6 @@ const userSchema = new Schema({
             default:null,
         }     
     },
-    isOnline: {
-        type: Boolean,
-        default: false   
-    },
     lastSeen: {
         type: Date,
         default: Date.now 

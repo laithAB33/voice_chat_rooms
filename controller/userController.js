@@ -281,7 +281,6 @@ let update = asyncWrapper(async(req,res,next)=>{
 
 })
 
-
 // تحقق من مالك الحساب
 export{register,login,test,logout,refreshToken,deleteUser,addAvatar,update};
 

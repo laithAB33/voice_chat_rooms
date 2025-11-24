@@ -22,7 +22,6 @@ let socketAuth = socketWrapper(async(socket,next)=>{
         throw new AppError("you need to login",401,"fail");
     }
     
-
     let user = await User.findById(decoded.userID)
 
     if(!user)

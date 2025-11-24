@@ -195,7 +195,7 @@ let disconnect = (socket)=> socketWrapper2(socket,async()=>{
         message: `${socket.userName} disconnected`,
         messageType: 'system'
     })
-0
+
     await systemMessage.save();
 
     socket.to(socket.currentRoom).emit('user-disconnected',{
@@ -211,7 +211,6 @@ let disconnect = (socket)=> socketWrapper2(socket,async()=>{
 
     await User.findByIdAndUpdate(socket.userID,
         {
-            isOnline:false,
             lastSeen:new Date(),
         });
 
@@ -263,7 +262,6 @@ let voiceRequest = (socket)=> socketWrapper2(socket,async(roomID)=>{
         currentVoiceParticipants: voiceParticipants
     });
 
-    // 📢 إعلام جميع المستخدمين في الغرفة
     io.to(roomID).emit('user-joined-voice', {
         userId: socket.userID,
         username: user.userName,
@@ -324,4 +322,26 @@ let speakingStatus = (socket)=> socketWrapper2(socket,async(data)=>{
     });
 })
 
-export {joinRoom,sendMessage,leaveRoom,disconnect,voiceRequest,toggleMicrophone,speakingStatus};
+
+let voiceData = (socket)=> socketWrapper2(socket,async(data)=>{
+
+    const { roomID, userID, audioData } = data;
+
+    const room = await Room.findOne({ _id:roomID })
+
+    if(!room)throw new AppError("the room not found",400,"fail");
+
+    let user = room.participants.find( user=> String(user.userID._id) == String(userID) );
+
+    if(!user) throw new AppError("user id is not valid",400,"fail")
+
+    if(!user.hasVoiceAccess)throw new AppError("you don't have a voice access",400,"fail");
+ 
+        socket.to(data.roomID).emit('voice-data', {
+            userId: data.userID,
+            audioData: data.audioData
+        })
+
+})
+
+export {joinRoom,sendMessage,leaveRoom,disconnect,voiceRequest,toggleMicrophone,speakingStatus,voiceData};

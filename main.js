@@ -11,7 +11,7 @@ import {Router as userRouter} from './Routes/userRouter.js';
 import { Router as roomRouter } from "./Routes/roomRouter.js";
 import { socketAuth } from "./sokect.IO/socketAuth.js";
 import { socketWrapper} from "./middleware/asyncWrapper.js";
-import { joinRoom , sendMessage , leaveRoom, disconnect,voiceRequest,toggleMicrophone,speakingStatus} from "./sokect.IO/socketController.js";
+import { joinRoom , sendMessage , leaveRoom, disconnect,voiceRequest,toggleMicrophone,speakingStatus,voiceData} from "./sokect.IO/socketController.js";
 import { User } from "./modules/userSchema.js";
 import { Router as OauthRouter } from "./Routes/OauthRouter.js";
 import passport from "passport";
@@ -62,8 +62,6 @@ io.on('connection',socketWrapper(async(socket)=>{
 
     console.log(`client is connected userName ${socket.userName}\n conection: ${socket.id}\n`);
 
-    let user = await User.findByIdAndUpdate(socket.userID,{isOnline:true});
-
     connectedUsers.set(socket.id,{
         userName:socket.userName,
         userID : socket.userID,
@@ -85,6 +83,8 @@ io.on('connection',socketWrapper(async(socket)=>{
 
     socket.on('speaking-Status',speakingStatus(socket));
 
+    socket.on('voice-data',voiceData(socket));
+
 }))
 
 app.use(globalErrorHandler);
@@ -103,3 +103,4 @@ http.listen(port,()=>{
 })
 
 // typing message when user is typing
+// admin of group is disconected
