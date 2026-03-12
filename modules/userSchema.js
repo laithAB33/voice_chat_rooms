@@ -71,7 +71,7 @@ const userSchema = new Schema({
 
 let User = mongoose.model('User', userSchema);
 
-User.collection.dropIndex('expire_1',{ignoreErrors:true});
+//User.collection.dropIndex('expire_1',{ignoreErrors:true});
 
 User.collection.createIndex(
     {expire:1},
