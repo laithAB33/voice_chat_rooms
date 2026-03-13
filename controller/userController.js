@@ -12,39 +12,135 @@ import { transporter, verificationCodes } from "../utils/mail.js";
 import crypto from 'crypto';
 import { sendVerificationCode } from "../view/sendVerificationCode.js";
 
-let register = asyncWrapper(async (req,res,next)=>{
+// let register = asyncWrapper(async (req,res,next)=>{
 
-    let {email,password} = req.body;
+    // let {email,password} = req.body;
 
-    let hashedPassword = bcryptjs.hashSync(password);
+    // let hashedPassword = bcryptjs.hashSync(password);
 
-    let newUser = assignUser(req,hashedPassword);
+    // let newUser = assignUser(req,hashedPassword);
 
-        await newUser.save();
+    //     await newUser.save();
 
-    const verificationCode = crypto.randomInt(100000,999999).toString();
+    // const verificationCode = crypto.randomInt(100000,999999).toString();
 
-    verificationCodes.set(email,{
-        code: verificationCode,
-        expiresAt: Date.now() + 10*60*1000
-    })
+    // verificationCodes.set(email,{
+    //     code: verificationCode,
+    //     expiresAt: Date.now() + 10*60*1000
+    // })
 
-    await transporter.verify();
+    // await transporter.verify();
 
-    await transporter.sendMail({
-        from: process.env.APP_EMAIL,
-        to:email,
-        subject: "verification code to your google account",
-        text:'',
-        html:sendVerificationCode(verificationCode)
-    })
+    // await transporter.sendMail({
+    //     from: process.env.APP_EMAIL,
+    //     to:email,
+    //     subject: "verification code to your google account",
+    //     text:'',
+    //     html:sendVerificationCode(verificationCode)
+    // })
 
-    res.status(200).json({success: true ,status:"success",message: "a verificatin code has been sent to your account" ,
-    data:{
-        email
-    }});
+    // res.status(200).json({success: true ,status:"success",message: "a verificatin code has been sent to your account" ,
+    // data:{
+    //     email
+    // }});
 
-})
+    let register = asyncWrapper(async (req, res, next) => {
+        let { email, password } = req.body;
+      
+        console.log('\n📝 بداية عملية التسجيل');
+        console.log('البريد المطلوب:', email);
+      
+        try {
+          // 1. إنشاء المستخدم
+          console.log('1. محاولة حفظ المستخدم...');
+          let hashedPassword = bcryptjs.hashSync(password);
+          let newUser = assignUser(req, hashedPassword);
+          await newUser.save();
+          console.log('✅ تم حفظ المستخدم');
+      
+          // 2. إنشاء رمز التحقق
+          console.log('2. إنشاء رمز التحقق...');
+          const verificationCode = crypto.randomInt(100000, 999999).toString();
+          verificationCodes.set(email, {
+            code: verificationCode,
+            expiresAt: Date.now() + 10 * 60 * 1000
+          });
+          console.log('✅ تم إنشاء الرمز');
+      
+          // 3. فحص إعدادات البريد
+          console.log('3. فحص إعدادات البريد:');
+          console.log('- البريد المرسل:', process.env.APP_EMAIL);
+          console.log('- كلمة المرور موجودة:', process.env.APP_PASSWORD ? '✅ نعم' : '❌ لا');
+          console.log('- طول كلمة المرور:', process.env.APP_PASSWORD ? process.env.APP_PASSWORD.length : 0);
+      
+          // 4. محاولة الاتصال بـ Gmail
+          console.log('4. محاولة الاتصال بـ Gmail...');
+          await transporter.verify();
+          console.log('✅ الاتصال بـ Gmail ناجح');
+      
+          // 5. إرسال البريد
+          console.log('5. محاولة إرسال البريد...');
+          
+          const mailOptions = {
+            from: process.env.APP_EMAIL,
+            to: email,
+            subject: "رمز التحقق",
+            html: sendVerificationCode(verificationCode)
+          };
+      
+          console.log('خيارات البريد:', {
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject
+          });
+      
+          const info = await transporter.sendMail(mailOptions);
+          
+          console.log('✅✅ تم إرسال البريد بنجاح!');
+          console.log('Message ID:', info.messageId);
+          console.log('Response:', info.response);
+      
+          res.status(200).json({
+            success: true,
+            message: "تم إرسال رمز التحقق"
+          });
+      
+        } catch (error) {
+          // ❌ هذا سيطبع كل تفاصيل الخطأ
+          console.log('\n❌❌❌❌❌ ERROR ❌❌❌❌❌');
+          console.log('الوقت:', new Date().toISOString());
+          console.log('نوع الخطأ:', error.name);
+          console.log('رسالة الخطأ:', error.message);
+          console.log('كود الخطأ:', error.code);
+          console.log('المنفذ:', error.port);
+          console.log('المضيف:', error.host);
+          
+          if (error.command) {
+            console.log('الأمر الفاشل:', error.command);
+          }
+          
+          if (error.response) {
+            console.log('رد Gmail:', error.response);
+          }
+          
+          console.log('Stack:', error.stack);
+          console.log('❌❌❌❌❌ END ERROR ❌❌❌❌❌\n');
+      
+          // حذف المستخدم إذا فشل الإرسال
+          try {
+            await newUser.deleteOne();
+            console.log('✅ تم حذف المستخدم بسبب فشل الإرسال');
+          } catch (deleteError) {
+            console.log('فشل حذف المستخدم:', deleteError.message);
+          }
+      
+          res.status(500).json({
+            success: false,
+            message: "فشل إرسال رمز التحقق"
+          });
+        }
+      });
+// })
 
 let accountConfirmation = asyncWrapper(async(req,res,next)=>{
     
