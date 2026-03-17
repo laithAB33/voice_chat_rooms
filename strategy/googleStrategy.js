@@ -1,6 +1,5 @@
 import passport from "passport";
 import { Strategy } from "passport-google-oauth20";
-import { asyncWrapper } from "../middleware/asyncWrapper.js";
 import { User } from "../modules/userSchema.js";
 import { genrateToken } from "../utils/genrateToken.js";
 
